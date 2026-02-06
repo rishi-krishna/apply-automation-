@@ -14,6 +14,7 @@ const fields = [
   "gender",
   "raceEthnicity",
   "veteranStatus",
+  "dataConsent",
   "customAnswers",
   "maxApplications",
   "autoSubmit"
@@ -67,6 +68,10 @@ async function sendMessageToActiveTab(type, payload = {}) {
 
 document.getElementById("saveBtn").addEventListener("click", async () => {
   const data = readForm();
+  if (!data.dataConsent) {
+    setStatus("Please accept Data Notice before saving.", true);
+    return;
+  }
   try {
     if (data.customAnswers) {
       JSON.parse(data.customAnswers);
@@ -76,13 +81,17 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     return;
   }
 
-  await chrome.storage.sync.set({ easyApplyAssistant: data });
+  await chrome.storage.local.set({ easyApplyAssistant: data });
   setStatus("Saved.");
 });
 
 document.getElementById("startBtn").addEventListener("click", async () => {
   const data = readForm();
-  await chrome.storage.sync.set({ easyApplyAssistant: data });
+  if (!data.dataConsent) {
+    setStatus("Please accept Data Notice before starting.", true);
+    return;
+  }
+  await chrome.storage.local.set({ easyApplyAssistant: data });
   await sendMessageToActiveTab("START_AUTOMATION", { config: data });
   setStatus("Automation started.");
 });
@@ -93,12 +102,13 @@ document.getElementById("stopBtn").addEventListener("click", async () => {
 });
 
 async function init() {
-  const { easyApplyAssistant } = await chrome.storage.sync.get("easyApplyAssistant");
+  const { easyApplyAssistant } = await chrome.storage.local.get("easyApplyAssistant");
   fillForm({
     disabilityStatus: "No",
     gender: "Male",
     raceEthnicity: "Asian (Non Hispanic or Latino)",
     veteranStatus: "I am not a protected veteran",
+    dataConsent: false,
     maxApplications: 10,
     autoSubmit: false,
     ...easyApplyAssistant

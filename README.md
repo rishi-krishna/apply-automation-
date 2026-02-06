@@ -16,6 +16,7 @@ This extension scans LinkedIn Jobs pages for `Easy Apply` listings, opens them, 
 - Heavy automation can trigger rate limits or account restrictions.
 - Resume uploads from your local file system are not auto-handled by this version.
 - Start with `Auto submit` turned off to validate answers first.
+- This extension stores profile data in `chrome.storage.local` (device-local browser storage).
 
 ## Install
 
@@ -33,6 +34,13 @@ This extension scans LinkedIn Jobs pages for `Easy Apply` listings, opens them, 
 5. Click `Start`.
 6. Watch the first few applications and adjust values if needed.
 
+## Privacy
+
+- Data is used only to fill fields on LinkedIn Easy Apply pages.
+- Data is stored locally in your Chrome profile (`chrome.storage.local`).
+- No backend service is used by this extension.
+- You must provide a public privacy policy URL in Chrome Web Store listing.
+
 ## Custom answers format
 
 Use lowercase question text as the key:
@@ -43,4 +51,3 @@ Use lowercase question text as the key:
   "will you now or in the future require sponsorship?": "No"
 }
 ```
-

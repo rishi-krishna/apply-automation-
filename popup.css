@@ -79,3 +79,10 @@ button:hover {
   font-size: 12px;
   min-height: 16px;
 }
+
+.privacy p {
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #374151;
+}

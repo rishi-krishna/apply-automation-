@@ -3,8 +3,7 @@
   "name": "LinkedIn Easy Apply Assistant",
   "description": "Automates scanning and filling LinkedIn Easy Apply forms using saved profile data.",
   "version": "1.0.0",
-  "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["https://www.linkedin.com/*"],
+  "permissions": ["storage", "activeTab"],
   "action": {
     "default_title": "Easy Apply Assistant",
     "default_popup": "popup.html"
