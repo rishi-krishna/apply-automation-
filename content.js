@@ -28,6 +28,16 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  function getStepDelay(config) {
+    const parsed = Number(config?.stepDelayMs);
+    if (Number.isFinite(parsed) && parsed >= 250) return parsed;
+    return 1000;
+  }
+
+  async function stepPause(config) {
+    await wait(getStepDelay(config));
+  }
+
   function visible(el) {
     if (!el) return false;
     const style = window.getComputedStyle(el);
@@ -765,6 +775,15 @@
     return Boolean(invalidByAttr || invalidByText);
   }
 
+  function hitDailyLimitNotice() {
+    const pageText = normalizeText(document.body?.innerText || "");
+    return (
+      pageText.includes("we limit daily submissions") ||
+      pageText.includes("save this job and apply tomorrow") ||
+      pageText.includes("daily submissions to maintain quality")
+    );
+  }
+
   async function closeApplicationModal() {
     const modal = getActiveEasyApplyModal() || document;
     const dismiss = findButtonByText(["dismiss", "cancel"], modal);
@@ -782,7 +801,7 @@
     while (isRunning && stepGuard < 12) {
       stepGuard += 1;
       await fillVisibleFormFields(config);
-      await wait(500);
+      await stepPause(config);
 
       const modal = getActiveEasyApplyModal() || document;
       const actionbar = modal.querySelector(".artdeco-modal__actionbar") || modal;
@@ -793,9 +812,12 @@
         if (config.autoSubmit) {
           submitBtn.click();
           appliedCount += 1;
-          await wait(1500);
+          await stepPause(config);
           const done = findButtonByText(["done"], modal) || findButtonByText(["done"], document);
-          if (done) done.click();
+          if (done) {
+            done.click();
+            await stepPause(config);
+          }
         }
         return true;
       }
@@ -805,11 +827,11 @@
         if (hasUnresolvedInvalidFields()) {
           debugLog("completeCurrentApplication unresolved invalid fields before next");
           await fillVisibleFormFields(config);
-          await wait(350);
+          await stepPause(config);
         }
         debugLog("completeCurrentApplication clicking next/review");
         nextBtn.click();
-        await wait(1000);
+        await stepPause(config);
         continue;
       }
 
@@ -821,12 +843,16 @@
   }
 
   async function maybeOpenEasyApply() {
+    if (hitDailyLimitNotice()) {
+      debugLog("daily limit notice detected before opening easy apply");
+      return false;
+    }
     const easyApplyButton = document.querySelector("button.jobs-apply-button");
     if (!easyApplyButton || !visible(easyApplyButton)) return false;
     const txt = textOf(easyApplyButton);
     if (!txt.includes("easy apply")) return false;
     easyApplyButton.click();
-    await wait(1500);
+    await wait(1200);
     return true;
   }
 
@@ -855,7 +881,7 @@
           card;
         clickableCard.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
       }
-      await wait(1800);
+      await wait(1200);
       return true;
     }
     return false;
@@ -885,12 +911,18 @@
     const maxApps = Number(config.maxApplications || 10);
     debugLog("run started", { maxApps, autoSubmit: Boolean(config.autoSubmit) });
     while (isRunning && runToken === activeRunToken && processedCount < maxApps) {
+      if (hitDailyLimitNotice()) {
+        debugLog("run stopped: LinkedIn daily limit notice detected");
+        isRunning = false;
+        return;
+      }
+
       if (isEasyApplyModalOpen()) {
         const modalResult = await completeCurrentApplication(config);
         if (modalResult === true) {
           processedCount += 1;
           await closeApplicationModal();
-          await wait(800);
+          await stepPause(config);
           continue;
         }
         if (modalResult === "blocked") {
@@ -903,12 +935,14 @@
       if (!hasJob) {
         debugLog("run no easy-apply card found, scrolling");
         await scrollJobsList();
+        await stepPause(config);
         continue;
       }
 
       const opened = await maybeOpenEasyApply();
       if (!opened) {
         debugLog("run could not open easy apply on selected job");
+        await stepPause(config);
         continue;
       }
 
@@ -917,7 +951,7 @@
         processedCount += 1;
         debugLog("run application step completed", { processedCount, maxApps });
         await closeApplicationModal();
-        await wait(1200);
+        await stepPause(config);
         continue;
       }
 
