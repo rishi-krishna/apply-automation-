@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Easy Apply Assistant</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main>
+    <h1>Easy Apply Assistant</h1>
+
+    <section>
+      <h2>Profile</h2>
+      <label>Full Name <input id="fullName" type="text" /></label>
+      <label>Email <input id="email" type="email" /></label>
+      <label>Phone <input id="phone" type="text" /></label>
+      <label>City <input id="city" type="text" /></label>
+      <label>LinkedIn URL <input id="linkedinUrl" type="text" /></label>
+      <label>Portfolio URL <input id="portfolioUrl" type="text" /></label>
+      <label>Years of Experience <input id="yearsExperience" type="number" min="0" /></label>
+      <label>Current CTC / Salary <input id="currentSalary" type="text" /></label>
+      <label>Expected CTC / Salary <input id="expectedSalary" type="text" /></label>
+      <label>Notice Period <input id="noticePeriod" type="text" /></label>
+      <label>Work Authorization <input id="workAuthorization" type="text" placeholder="US Citizen / H1B / OPT..." /></label>
+      <label>Disability Status <input id="disabilityStatus" type="text" placeholder="No" /></label>
+      <label>Gender <input id="gender" type="text" placeholder="Male" /></label>
+      <label>Race / Ethnicity <input id="raceEthnicity" type="text" placeholder="Asian (Non Hispanic or Latino)" /></label>
+      <label>Veteran Status <input id="veteranStatus" type="text" placeholder="I am not a protected veteran" /></label>
+      <label>Custom Answers (JSON map)</label>
+      <textarea id="customAnswers" rows="5" placeholder='{"why should we hire you?":"I build reliable production systems."}'></textarea>
+    </section>
+
+    <section>
+      <h2>Automation</h2>
+      <label>Max Applications Per Run <input id="maxApplications" type="number" min="1" value="10" /></label>
+      <label class="toggle"><input id="autoSubmit" type="checkbox" /> Auto submit applications</label>
+    </section>
+
+    <div class="actions">
+      <button id="saveBtn" type="button">Save</button>
+      <button id="startBtn" type="button">Start</button>
+      <button id="stopBtn" type="button">Stop</button>
+    </div>
+    <p id="status"></p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
