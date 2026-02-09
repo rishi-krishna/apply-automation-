@@ -784,8 +784,58 @@
     );
   }
 
+  function isApplicationSentModal(modal = null) {
+    const root = modal || getActiveEasyApplyModal() || document;
+    const t = normalizeText(root.innerText || "");
+    return t.includes("application sent") || t.includes("your application was sent");
+  }
+
+  async function closeApplicationSentModal(config) {
+    const tries = 6;
+    for (let i = 0; i < tries; i += 1) {
+      const modal = getActiveEasyApplyModal() || document;
+      if (!isApplicationSentModal(modal)) {
+        return i > 0;
+      }
+
+      const doneBtn = findButtonByText(["done"], modal) || findButtonByText(["done"], document);
+      if (doneBtn) {
+        debugLog("closeApplicationSentModal clicking done");
+        doneBtn.click();
+        await stepPause(config);
+        if (!isApplicationSentModal(getActiveEasyApplyModal() || document)) {
+          return true;
+        }
+      }
+
+      const closeBtn =
+        modal.querySelector('button[aria-label*="Dismiss" i]') ||
+        modal.querySelector('button[aria-label*="Close" i]') ||
+        modal.querySelector(".artdeco-modal__dismiss");
+      if (closeBtn && visible(closeBtn)) {
+        debugLog("closeApplicationSentModal clicking close icon");
+        closeBtn.click();
+        await stepPause(config);
+        if (!isApplicationSentModal(getActiveEasyApplyModal() || document)) {
+          return true;
+        }
+      }
+
+      await stepPause(config);
+    }
+
+    return !isApplicationSentModal(getActiveEasyApplyModal() || document);
+  }
+
   async function closeApplicationModal() {
     const modal = getActiveEasyApplyModal() || document;
+    const done = findButtonByText(["done"], modal) || findButtonByText(["done"], document);
+    if (done) {
+      done.click();
+      await wait(500);
+      return;
+    }
+
     const dismiss = findButtonByText(["dismiss", "cancel"], modal);
     if (dismiss) {
       dismiss.click();
@@ -799,6 +849,12 @@
   async function completeCurrentApplication(config) {
     let stepGuard = 0;
     while (isRunning && stepGuard < 12) {
+      if (isApplicationSentModal()) {
+        debugLog("completeCurrentApplication detected application sent modal");
+        await closeApplicationSentModal(config);
+        return true;
+      }
+
       stepGuard += 1;
       await fillVisibleFormFields(config);
       await stepPause(config);
@@ -813,11 +869,7 @@
           submitBtn.click();
           appliedCount += 1;
           await stepPause(config);
-          const done = findButtonByText(["done"], modal) || findButtonByText(["done"], document);
-          if (done) {
-            done.click();
-            await stepPause(config);
-          }
+          await closeApplicationSentModal(config);
         }
         return true;
       }
